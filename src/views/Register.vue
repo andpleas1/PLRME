@@ -126,7 +126,7 @@ export default {
       this.loading = true;
 
       this.$store.dispatch("auth/register", user).then(
-        (data) => {
+        () => {
           // Encouner adding a new user api and get response
           alert(
             "User Register done successfuly and Redirecting to profile page with another user data!"  
