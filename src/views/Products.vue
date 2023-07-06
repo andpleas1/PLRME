@@ -28,7 +28,7 @@
 					<div class="row">
 						<div class="col-md-4" v-for="product in filteredProducts.slice(
 							(currentPage - 1) * itemsPerPage, 
-							currentPage * itemsPerPage > filterProducts.length - 1 ? filteredProducts.length - 1 : currentPage*itemsPerPage)" :key="product.id">
+							Math.min(currentPage * itemsPerPage, filteredProducts.length - 1))" :key="product.id">
 							<ProductComponent :productData="product" :key="product.id"/>
 						</div>
 					</div>
