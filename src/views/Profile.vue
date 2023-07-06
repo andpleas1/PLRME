@@ -189,10 +189,14 @@ export default {
   },
   methods: {
     handleSubmit(data) {
+      this.message = '';
+      this.loading = true;
       this.$store.dispatch("user/updateUser", {data, id: this.currentUser.id}).then(() => {
         this.message = "User Data Updated Successfully!"
+        this.loading = false;
       }).catch(err => {
         console.log(err)
+        this.loading = false;
       });
     }
   }
