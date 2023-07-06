@@ -8,12 +8,9 @@
 				</router-link>
 			</li>
 			<li class="nav-item">
-				<router-link to="/product" class="nav-link">
+				<router-link to="/products" class="nav-link">
 					<font-awesome-icon /> Products
 				</router-link>
-			</li>
-			<li class="nav-item">
-				<router-link v-if="currentUser" to="/user" class="nav-link">User</router-link>
 			</li>
 		</div>
 

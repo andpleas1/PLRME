@@ -6,8 +6,8 @@
 					<h4>Categories</h4>
 					<button @click="toggleSortOrder">Toggle Sort Order</button>
 					<ul>
-						<li v-for="category in sortedCategories" :key="category.id">
-							<router-link :to="`/products/${category.id}`">{{ category.name }}</router-link>
+						<li v-for="(category, key) in categories" :key="category.id">
+							<router-link :to="`/products/${key}`">{{ category }}</router-link>
 						</li>
 					</ul>
 				</div>
@@ -47,8 +47,10 @@
 </template>
   
 <script>
+import ProductService from '../services/product.service';
+
 export default {
-	name:"ProductComponent",
+	name:"ProductsComponent",
 	data() {
 		return {
 			categories: [],
@@ -62,8 +64,10 @@ export default {
 	},
 	computed: {
 		sortedCategories() {
-			// return []
-			return this.categories.sort((a, b) => {
+			console.log(this.categories)
+			const sorted = [...this.categories]; // Create a shallow copy of the categories array
+			console.log(this.categories)
+			return sorted.sort((a, b) => {
 				if (this.sortOrderAsc) {
 					return a.name.localeCompare(b.name);
 				} else {
@@ -73,7 +77,7 @@ export default {
 		},
 		filteredProducts() {
 			const filtered = this.products.filter(product => {
-				return product.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+				return product.title.toLowerCase().includes(this.searchQuery.toLowerCase());
 			});
 			const startIndex = (this.currentPage - 1) * this.itemsPerPage;
 			return filtered.slice(startIndex, startIndex + this.itemsPerPage);
@@ -100,39 +104,21 @@ export default {
 					quantity: product.quantity,
 				});
 			}
-			},
+		},
 	},
 	mounted() {
 		// Fetch categories and products data from API or static file
-		// Assign the data to this.categories and this.products
-		// For simplicity, let's assume the data is already available
+		ProductService.getAllCategories().then(response => {
+			this.categories = response;
+			console.log(response)
+		})
+
+
+		ProductService.getAllProducts().then(response => {
+			this.products = response.products;
+			console.log(response)
+		})
 		
-		// Example data
-		this.categories = [
-			{ id: 1, name: 'Category 1' },
-			{ id: 2, name: 'Category 2' },
-			{ id: 3, name: 'Category 3' },
-		];
-		
-		this.products = [
-			{
-				id: 1,
-				name: 'Product 1',
-				description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-				price: 10.99,
-				image: 'path/to/product1.jpg',
-				quantity: 1,
-			},
-			{
-				id: 2,
-				name: 'Product 2',
-				description: 'Nullam facilisis metus at aliquam pharetra.',
-				price: 19.99,
-				image: 'path/to/product2.jpg',
-				quantity: 1,
-			},
-			// Add more products here
-		];
 	},
 };
 </script>
