@@ -73,13 +73,11 @@ export default {
     sortOrderAsc(newValue) {
 			const sorted = [...this.categories]; // Create a shallow copy of the categories array
 			this.sortedCategories = sorted.sort((a, b) => {
-				console.log(a,b)
 				if (newValue == true)
 					return b.localeCompare(a);
 				else
 					return a.localeCompare(b);
 			});
-			console.log(this.sortedCategories)
 		},
 		selectedCategories(newArray) {
 			// first filted by search
@@ -135,7 +133,6 @@ export default {
 		ProductService.getAllCategories().then(response => {
 			this.categories = response;
 			this.sortedCategories = this.categories;
-			console.log(response)
 		})
 
 
@@ -143,7 +140,6 @@ export default {
 			this.products = response.products;
 			this.filteredProducts = this.products;
 			this.totalPages = Math.ceil(this.products.length / this.itemsPerPage);
-			console.log(response)
 		})
 		
 	},

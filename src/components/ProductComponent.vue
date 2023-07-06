@@ -42,6 +42,7 @@ export default {
 	max-height: 450px;
 	overflow: hidden;
   transition: box-shadow 0.3s ease; /* Add smooth transition effect */
+	cursor: pointer;
 }
 
 .card:hover {
