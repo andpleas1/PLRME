@@ -1,59 +1,81 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import Home from './views/Home.vue'
-import LoginView from './views/LoginView.vue'
-import { TokenService } from './services/storage.service'
+import { createWebHistory, createRouter } from "vue-router";
+import Home from "./views/Home.vue";
+import Login from "./views/Login.vue";
+import Register from "./views/Register.vue";
+import ProductComponent from "./views/Product.vue";
+// lazy-loaded
+const Profile = () => import("./views/Profile.vue")
+const BoardAdmin = () => import("./views/BoardAdmin.vue")
+const BoardModerator = () => import("./views/BoardModerator.vue")
+const BoardUser = () => import("./views/BoardUser.vue")
 
-Vue.use(Router)
+const routes = [
+  {
+    path: "/",
+    name: "home",
+    component: Home,
+  },
+  {
+    path: "/home",
+    component: Home,
+  },
+  {
+    path: "/login",
+    component: Login,
+  },
+  {
+    path: "/register",
+    component: Register,
+  },
+  {
+    path: "/products",
+    component: ProductComponent,
+  },
+  {
+    path: "/profile",
+    name: "profile",
+    // lazy-loaded
+    component: Profile,
+  },
+  {
+    path: "/admin",
+    name: "admin",
+    // lazy-loaded
+    component: BoardAdmin,
+  },
+  {
+    path: "/mod",
+    name: "moderator",
+    // lazy-loaded
+    component: BoardModerator,
+  },
+  {
+    path: "/user",
+    name: "user",
+    // lazy-loaded
+    component: BoardUser,
+  },
+];
 
-const router =  new Router({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: Home
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-      meta: {
-        public: true,  // Allow access to even if not logged in
-        onlyWhenLoggedOut: true
-      }
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/About.vue')
-    },
-  ]
-})
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+});
 
 router.beforeEach((to, from, next) => {
-  const isPublic = to.matched.some(record => record.meta.public)
-  const onlyWhenLoggedOut = to.matched.some(record => record.meta.onlyWhenLoggedOut)
-  const loggedIn = !!TokenService.getToken();
-
-  if (!isPublic && !loggedIn) {
-    return next({
-      path:'/login',
-      query: {redirect: to.fullPath}  // Store the full path to redirect the user to after login
-    });
+  const publicPages = ['/login', '/register', '/home', "/products"];
+  const authRequired = !publicPages.includes(to.path);
+  const loggedIn = localStorage.getItem('user');
+  
+  // trying to access a restricted page + not logged in
+  // redirect to login page
+  if (authRequired && !loggedIn) {
+    console.log("UnAuthorized")
+    next('/login');
+  } else {
+    console.log("Authorized")
+    next();
   }
-
-  // Do not allow user to visit login page or register page if they are logged in
-  if (loggedIn && onlyWhenLoggedOut) {
-    return next('/')
-  }
-
-  next();
-})
-
+});
 
 export default router;
