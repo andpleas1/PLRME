@@ -1,36 +1,35 @@
 <template>
 	<div class="container">
+    <header class="jumbotron">
+      <h3>
+        <strong>Products List</strong>
+      </h3>
+    </header>
 		<div class="row">
 			<div class="col-md-3">
 				<div class="sidebar">
 					<h4>Categories</h4>
-					<button @click="toggleSortOrder">Toggle Sort Order</button>
-					<ul>
-						<li v-for="(category, key) in categories" :key="category.id">
-							<router-link :to="`/products/${key}`">{{ category }}</router-link>
+					<ul class="category-list">
+						<li v-for="(category, key) in sortedCategories" :key="category.id">
+							<label :for="key">
+								<input type="checkbox" :id="key" v-model="selectedCategories" :value="category">
+								{{ category }}
+							</label>
 						</li>
 					</ul>
 				</div>
 			</div>
 			<div class="col-md-9">
 				<div class="search-bar">
+					<button class="btn btn-primary" @click="toggleSortOrder">Toggle Category Order</button>
 					<input type="text" v-model="searchQuery" placeholder="Search products">
 				</div>
 				<div class="products">
 					<div class="row">
-						<div class="col-md-4" v-for="product in filteredProducts" :key="product.id">
-							<div class="card">
-								<img :src="product.image" class="card-img-top" alt="Product Image">
-								<div class="card-body">
-									<h5 class="card-title">{{ product.name }}</h5>
-									<p class="card-text">{{ product.description }}</p>
-									<p class="card-price">Price: ${{ product.price }}</p>
-									<div class="card-actions">
-										<input type="number" v-model="product.quantity" min="1">
-										<button class="btn btn-primary" @click="addToCart(product)">Add to Cart</button>
-									</div>
-								</div>
-							</div>
+						<div class="col-md-4" v-for="product in filteredProducts.slice(
+							(currentPage - 1) * itemsPerPage, 
+							currentPage * itemsPerPage > filterProducts.length - 1 ? filteredProducts.length - 1 : currentPage*itemsPerPage)" :key="product.id">
+							<ProductComponent :productData="product" :key="product.id"/>
 						</div>
 					</div>
 				</div>
@@ -48,9 +47,13 @@
   
 <script>
 import ProductService from '../services/product.service';
+import ProductComponent from "@/components/ProductComponent.vue";
 
 export default {
 	name:"ProductsComponent",
+	components:{
+		ProductComponent
+	},
 	data() {
 		return {
 			categories: [],
@@ -60,31 +63,33 @@ export default {
 			currentPage: 1,
 			itemsPerPage: 9,
 			cart: [],
+			selectedCategories: [],
+			sortedCategories: [],
+			filteredProducts: [],
+			totalPages: 0
 		};
 	},
-	computed: {
-		sortedCategories() {
-			console.log(this.categories)
+  watch: {
+    sortOrderAsc(newValue) {
 			const sorted = [...this.categories]; // Create a shallow copy of the categories array
-			console.log(this.categories)
-			return sorted.sort((a, b) => {
-				if (this.sortOrderAsc) {
-					return a.name.localeCompare(b.name);
-				} else {
-					return b.name.localeCompare(a.name);
-				}
+			this.sortedCategories = sorted.sort((a, b) => {
+				console.log(a,b)
+				if (newValue == true)
+					return b.localeCompare(a);
+				else
+					return a.localeCompare(b);
 			});
+			console.log(this.sortedCategories)
 		},
-		filteredProducts() {
-			const filtered = this.products.filter(product => {
-				return product.title.toLowerCase().includes(this.searchQuery.toLowerCase());
-			});
-			const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-			return filtered.slice(startIndex, startIndex + this.itemsPerPage);
+		selectedCategories(newArray) {
+			// first filted by search
+			this.filterProducts(newArray, this.searchQuery)
 		},
-		totalPages() {
-			return Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-		},
+		
+		searchQuery(newQuery) {
+			// first filted by search
+			this.filterProducts(this.selectedCategories, newQuery)
+		}
 	},
 	methods: {
 		toggleSortOrder() {
@@ -92,6 +97,25 @@ export default {
 		},
 		changePage(page) {
 			this.currentPage = page;
+		},
+		filterProducts(selectedCategories, query) {
+			let filtered = this.products
+
+			if (query.length)
+				filtered = filtered.filter(product => {
+					return product.title.toLowerCase().includes(query.toLowerCase());
+				});
+			
+			if (Object.values(selectedCategories).length)
+				filtered = filtered.filter(product => {
+					for (let category of Object.values(selectedCategories)) {
+						if (product.category == category)
+							return true;
+					}
+				});
+
+			this.totalPages = Math.ceil(filtered.length / this.itemsPerPage);
+			this.filteredProducts = filtered;
 		},
 		addToCart(product) {
 			const itemInCart = this.cart.find(item => item.id === product.id);
@@ -110,12 +134,15 @@ export default {
 		// Fetch categories and products data from API or static file
 		ProductService.getAllCategories().then(response => {
 			this.categories = response;
+			this.sortedCategories = this.categories;
 			console.log(response)
 		})
 
 
 		ProductService.getAllProducts().then(response => {
 			this.products = response.products;
+			this.filteredProducts = this.products;
+			this.totalPages = Math.ceil(this.products.length / this.itemsPerPage);
 			console.log(response)
 		})
 		
@@ -129,24 +156,19 @@ export default {
 }
 
 .search-bar {
+	display: flex;
+	justify-content: space-between;
 	margin-bottom: 20px;
+}
+
+.category-list {
+	margin-top: 15px;
+  list-style: none;
+	padding-left: 10px;
 }
 
 .products {
 	margin-bottom: 20px;
-}
-
-.card {
-	margin-bottom: 20px;
-}
-
-.card-img-top {
-	height: 200px;
-	object-fit: cover;
-}
-
-.card-actions {
-	margin-top: 10px;
 }
 
 .pagination {
