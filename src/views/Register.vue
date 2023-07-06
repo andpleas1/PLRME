@@ -128,19 +128,16 @@ export default {
       this.$store.dispatch("auth/register", user).then(
         (data) => {
           // Encouner adding a new user api and get response
-          console.log(data)
           alert(
             "User Register done successfuly and Redirecting to profile page with another user data!"  
           )
           this.message = "User Register done successfuly and Redirecting to profile page with another user data!";
 
           this.$store.dispatch("auth/randomUser").then((data) => {
-            // console.log(data)
             let temp_user = {
               username: data.users[0].username,
               password: data.users[0].password,
             }
-            // console.log(temp_user)
             
             // Redirect with another temp user since this api not support add new user
             this.$store.dispatch("auth/login", temp_user).then(

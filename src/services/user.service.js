@@ -14,7 +14,6 @@ class UserService {
   
   updateUser(id, data) {
     return axios.put(API_URL + `/users/` + id, data).then(response => {
-      console.log(response.data)
       return response.data
     }).catch(err=> {
       console.log(err)
